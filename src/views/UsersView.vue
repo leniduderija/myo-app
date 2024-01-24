@@ -2,6 +2,7 @@
   <br />
   <br />
   <a-table
+    id="users-table"
     bordered
     size="large"
     style="width: 100%; margin: 20px 0"
