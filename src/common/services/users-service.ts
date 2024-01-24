@@ -6,19 +6,19 @@ const getUsers = async () => {
 }
 
 const getUser = async (userId: string) => {
-  return await httpClient.get<{ data: User }>(`/api/users/${userId}`)
+  return await httpClient.get<{ value: User }>(`/api/users/${userId}`)
 }
 
-const updateUser = async (userId: string) => {
-  return await httpClient.put<{ data: User }>(`/api/users/${userId}`)
+const updateUser = async (values: User) => {
+  return await httpClient.put<{ value: User }>(`/api/users/${values.id}`, values)
 }
 
 const deleteUser = async (userId: string) => {
-  return await httpClient.delete<{ data: User }>(`/api/users/${userId}`)
+  return await httpClient.delete<{ value: User }>(`/api/users/${userId}`)
 }
 
-const createUser = async () => {
-  return await httpClient.post<{ data: User }>(`/api/users`)
+const createUser = async (values: Omit<User, 'createdAt' | 'id'>) => {
+  return await httpClient.post<User>(`/api/users`, values)
 }
 
 const usersService = {

@@ -3,13 +3,24 @@ import { RouterLink, RouterView } from 'vue-router'
 </script>
 
 <template>
+  <a-config-provider
+    :theme="{
+      components: {
+        Input: {
+          colorTextDisabled: '#000'
+        }
+      }
+    }"
+  />
   <a-layout class="layout">
     <a-layout-header class="header">
       <a-flex class="container">
         <header>
           <div class="wrapper">
             <a-flex horizontal justify="space-between" flex="1">
-              <img alt="MYO logo" class="logo" src="@/assets/logo.png" width="125" />
+              <router-link to="/" style="background: transparent"
+                ><img alt="MYO logo" class="logo" src="@/assets/logo.png" width="125"
+              /></router-link>
               <nav>
                 <RouterLink to="/">Home</RouterLink>
                 <RouterLink to="/users">Users</RouterLink>

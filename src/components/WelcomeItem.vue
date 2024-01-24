@@ -22,6 +22,8 @@
 .details {
   flex: 1;
   margin-left: 1rem;
+  color: var(--theme-black);
+  align-items: center;
 }
 
 i {
@@ -31,14 +33,14 @@ i {
   width: 32px;
   height: 32px;
 
-  color: var(--color-text);
+  color: var(--theme-white);
 }
 
 h3 {
   font-size: 1.2rem;
   font-weight: 500;
   margin-bottom: 0.4rem;
-  color: var(--color-heading);
+  color: var(--theme-black);
 }
 
 @media (min-width: 1024px) {
