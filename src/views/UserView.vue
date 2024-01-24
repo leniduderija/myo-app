@@ -13,7 +13,9 @@
       ></template>
 
       <template #extra>
-        <a v-if="!edit" @click="toggleEdit"><edit-outlined /></a>
+        <a v-if="!edit" @click="toggleEdit" style="font-size: 24px; background: transparent"
+          ><edit-outlined
+        /></a>
       </template>
 
       <a-card title="Profile" class="profile">
@@ -44,7 +46,10 @@
           <a-form-item label="Avatar name" v-bind="edit && validateInfos.avatar">
             <a-input v-model:value="modelRef.profile.avatar" :bordered="edit" :disabled="!edit" />
           </a-form-item>
-          <a-form-item :wrapper-col="{ span: 16, offset: 8 }" style="text-align: right">
+          <a-form-item v-if="edit" :wrapper-col="{ span: 16, offset: 8 }" style="text-align: right">
+            <a-button type="default" @click.prevent="toggleEdit" style="margin-right: 10px"
+              >Cancel</a-button
+            >
             <a-button type="primary" @click.prevent="onSubmit">Save</a-button>
           </a-form-item>
         </a-form>
