@@ -1,14 +1,15 @@
 <template>
   <a-flex justify="flex-start" class="user">
-    <a-card :loading="loading" class="user-card" v-if="user">
+    <a-card :loading="loading" class="user-card">
       <template #title
         ><a-card-meta
-          :title="user.username"
+          data-testid="user-card-title"
+          :title="user?.username"
           :description="'Created on ' + new Date(user?.createdAt).toLocaleDateString()"
           class="card-title"
         >
           <template #avatar>
-            <a-avatar :src="user.profile.avatar" />
+            <a-avatar :src="user?.profile.avatar" />
           </template> </a-card-meta
       ></template>
 
@@ -173,7 +174,7 @@ const onFetchUserById = async () => {
 onFetchUserById()
 
 onMounted(() => {
-  if (route.query.edit) edit.value = Boolean(route.query.edit)
+  if (route.query?.edit) edit.value = Boolean(route.query.edit)
 })
 </script>
 
