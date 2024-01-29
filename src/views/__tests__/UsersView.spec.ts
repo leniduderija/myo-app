@@ -1,15 +1,24 @@
-import { beforeEach, describe, expect, test, it, vi } from 'vitest'
-import axios from 'axios'
+import { describe, expect, it, vi } from 'vitest'
 import UsersView from '../UsersView.vue'
 import usersService from '../../common/services/users-service'
-import { usersMock } from './users.mock'
+import { usersMock } from '../../common/tests/__mocks__/users.mock'
 import { mount } from '@vue/test-utils'
-
-const wrapper = mount(UsersView)
+import router from '../../router'
+import { getActionsCellButtons } from '../../common/tests/test-utils'
+import { render } from '@testing-library/vue'
+import { Popconfirm } from 'ant-design-vue'
 
 const mocks = vi.hoisted(() => ({
-  get: vi.fn(),
-  post: vi.fn()
+  get: vi.fn(() => Promise.resolve({ data: usersMock })),
+  post: vi.fn(),
+  put: vi.fn(),
+  delete: vi.fn(),
+  reset: () => {
+    mocks.get.mockReset()
+    mocks.post.mockReset()
+    mocks.put.mockReset()
+    mocks.delete.mockReset()
+  }
 }))
 
 vi.mock('axios', async (importActual) => {
@@ -21,24 +30,34 @@ vi.mock('axios', async (importActual) => {
       create: vi.fn(() => ({
         ...actual.default.create(),
         get: mocks.get,
-        post: mocks.post
+        post: mocks.post,
+        put: mocks.put,
+        delete: mocks.delete
       }))
     }
   }
   return mockAxios
 })
 
-describe('Users page', () => {
-  beforeEach(() => {
-    mocks.get.mockReset()
-  })
+const wrapper = mount(UsersView, {
+  global: {
+    plugins: [router]
+  }
+})
 
-  describe('Users table is shown correctly', () => {
+const firstUser = usersMock[0]
+
+describe('Users page', async () => {
+  describe('Users table is shown correctly with edit and delete actions', () => {
     it('renders a users table element', async () => {
-      // Expect a table element to exist
+      const getUsersSpy = vi.spyOn(usersService, 'getUsers')
+      await usersService.getUsers()
+      expect(mocks.get).toHaveBeenCalledWith('/api/users')
+
+      expect(getUsersSpy).toHaveBeenCalledOnce()
+      expect(mocks.get).toHaveBeenCalled() // should return true
+
       expect(wrapper.find('table').exists()).toBe(true)
-      // Expect the table element to have table head
-      expect(wrapper.find('thead').exists()).toBe(true)
 
       const tableHeads = await wrapper.findAll('th')
       expect(tableHeads[0].text()).toBe('Username')
@@ -55,73 +74,81 @@ describe('Users page', () => {
       const getUsersSpy = vi.spyOn(usersService, 'getUsers')
       const users = await usersService.getUsers()
       expect(getUsersSpy).toHaveBeenCalledOnce()
-      expect(mocks.get).toHaveBeenCalled() // should return true
+      expect(mocks.get).toHaveBeenCalledWith('/api/users')
+      expect(mocks.get).toHaveBeenCalled()
       expect(users).toStrictEqual({ data: usersMock })
     })
 
     it('should show users in table', async () => {
-      mocks.get.mockResolvedValueOnce({
-        data: usersMock
-      })
       const getUsersSpy = vi.spyOn(usersService, 'getUsers')
       const users = await usersService.getUsers()
+      expect(mocks.get).toHaveBeenCalledWith('/api/users')
       expect(getUsersSpy).toHaveBeenCalledOnce()
-      expect(mocks.get).toHaveBeenCalled() // should return true
       expect(users).toStrictEqual({ data: usersMock })
 
-      const tBody = await wrapper.find('tbody')
-      const tableRows = await tBody.findAll('tr')
-      const firstRow = tableRows[0]
-      const tableCells = await firstRow.findAll('td')
-      console.log("wrapper.find('table') ", wrapper.find('table'))
-      // expect(tableCells[0].text()).toBe(usersMock[0].username)
-      // mocks.get.mockResolvedValueOnce({
-      //   data: usersMock
-      // })
-      // const getUsersSpy = vi.spyOn(usersService, 'getUsers')
-      // const users = await usersService.getUsers()
-      // expect(getUsersSpy).toHaveBeenCalledOnce()
-      // expect(mocks.get).toHaveBeenCalled() // should return true
-      // expect(users).toStrictEqual({ data: usersMock })
+      // Ensure the table rows are rendered with correct data
+      const tableRows = await wrapper.findAll('tbody tr')
+
+      // Ensure each row contains the correct user data
+      tableRows.forEach((row, index) => {
+        const user = usersMock[index]
+        const cells = row.findAll('td')
+        expect(cells.length).toBe(5) // 5 columns (username, first name, last name, created at, action)
+        expect(cells[0].text()).toBe(user.username)
+        expect(cells[1].text()).toBe(user.profile.firstName)
+        expect(cells[2].text()).toBe(user.profile.lastName)
+        expect(cells[3].text()).toBe(new Date(user.createdAt).toLocaleDateString())
+      })
     })
 
-    test(`navigates to users route and sets query parameter name equal to 'John Doe'`, async () => {
-      // const wrapper = shallowMount(Home)
-      //
-      // await wrapper.find('button').trigger('click')
-      //
-      // expect(something_to_happen)
+    it(`navigates to users route and sets query parameter edit equal to 'true'`, async () => {
+      await usersService.getUsers()
+
+      // Ensure the table rows are rendered with correct data
+      const actionBtns = await getActionsCellButtons(wrapper)
+      const editBtn = actionBtns[0]
+
+      const push = vi.spyOn(router, 'push')
+
+      expect(editBtn.html()).toContain('Edit')
+      await editBtn.trigger('click')
+
+      expect(wrapper.findComponent(UsersView).exists()).toBe(true)
+
+      expect(push).toHaveBeenCalledTimes(1)
+      expect(push).toHaveBeenCalledWith(`/users/${firstUser.id}?edit=true`)
     })
 
-    // it('renders the submit text correctly', () => {
-    //   const wrapper = mount(BaseForm, {
-    //     props: {
-    //       submitText: 'Submit'
-    //     }
-    //   })
-    //
-    //   // Expect the submit button to have the correct text
-    //   expect(wrapper.find('button').text()).toBe('Submit')
-    // })
+    it('opens prompt for deleting user when clicking delete button', async () => {
+      const { getByText, queryByRole, getByRole } = render(Popconfirm, {
+        slots: {
+          title: `Are you sure you want to delete ${firstUser.username}?`,
+          default: 'Delete',
+          confirm: 'Ok',
+          cancel: 'Cancel'
+        }
+      })
 
-    // test('makes a GET request to fetch users', async () => {
-    //   httpClient.get.mockResolvedValue({
-    //     data: usersMock
-    //   })
-    //   const users = usersService.getUsers()
-    //
-    //   expect(httpClient.get).toHaveBeenCalledWith(import.meta.env.VITE_API_BASE_URL + '/api/users')
-    //   expect(users).toStrictEqual(usersMock)
-    // })
+      await usersService.getUsers()
+      const deleteUserSpy = vi.spyOn(usersService, 'deleteUser')
+
+      const actionBtns = await getActionsCellButtons(wrapper)
+      const deleteBtn = actionBtns[1]
+
+      expect(deleteBtn.html()).toContain('Delete')
+      await deleteBtn.trigger('click')
+
+      const triggerButton = getByText('Delete')
+      await triggerButton.click()
+
+      // Assert: Check that the Popconfirm is visible
+      const popconfirm = getByRole('tooltip')
+      // expect(popconfirm).toBeInTheDocument();
+      // TODO Leni 28/01: popover is not showing, find out why! Write rest of the test - confirm action, mocks.delete api call
+
+      expect(deleteUserSpy).toHaveBeenCalledOnce()
+      expect(mocks.delete).toHaveBeenCalledWith(`/api/users/${firstUser.id}`)
+      expect(mocks.delete).toHaveBeenCalled()
+    })
   })
 })
-
-// describe('User details page', () => {
-//   it('users page renders properly', async () => {
-//     expect(UserView).toBeTruthy()
-//
-//     // const wrapper = mount(UserView, {})
-//     // const table = await wrapper.get('table')
-//     // expect(table).toBeTruthy()
-//   })
-// })
