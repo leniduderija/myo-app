@@ -9,6 +9,7 @@
       ></template>
 
       <a-card title="Profile" class="profile">
+        <!--    TODO Leni 29/01: Move form to separate component which can be reused for user details page as well    -->
         <a-form
           name="user-create-form"
           :label-col="labelCol"
@@ -27,7 +28,7 @@
           <a-form-item label="Avatar name" v-bind="validateInfos.avatar">
             <a-input v-model:value="modelRef.profile.avatar" />
           </a-form-item>
-          <a-form-item :wrapper-col="{ span: 16, offset: 8 }" style="text-align: right">
+          <a-form-item :wrapper-col="{ span: 24 }" style="text-align: right">
             <a-button type="primary" @click.prevent="onSubmit">Save</a-button>
           </a-form-item>
         </a-form>
@@ -138,6 +139,9 @@ const createUser = () => {
 }
 
 .create-user-card {
+  width: 100%;
+}
+.new-user {
   width: 100%;
 }
 

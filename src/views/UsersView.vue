@@ -3,12 +3,13 @@
   <br />
   <a-table
     id="users-table"
+    class="users-table"
     bordered
     size="large"
     style="width: 100%; margin: 20px 0"
     :dataSource="users"
     :columns="columns"
-    loading="!users"
+    :loading="!users"
   >
     <template #bodyCell="{ column, record }">
       <template v-if="column.key === 'username'">
@@ -30,6 +31,8 @@
           <a-divider type="vertical" />
           <a-popconfirm
             v-if="users.length"
+            id="delete-confirmation"
+            data-testid="delete-confirmation"
             :title="'Are you sure you want to delete ' + record.username + '?'"
             @confirm="onDelete(record.id)"
           >
@@ -42,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type { AxiosResponse } from 'axios'
 import type { User } from '@/shared/type-defs'
 import { notification } from 'ant-design-vue'
@@ -115,10 +118,15 @@ const onDelete = (id: string) => {
     })
 }
 
-onFetchUsers()
+onMounted(() => {
+  onFetchUsers()
+})
 </script>
 
 <style>
+.users-table {
+  overflow-x: scroll;
+}
 @media (min-width: 1024px) {
   .users {
     min-height: 100vh;

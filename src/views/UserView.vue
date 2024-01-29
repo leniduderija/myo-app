@@ -14,7 +14,11 @@
       ></template>
 
       <template #extra>
-        <a v-if="!edit" @click="toggleEdit" style="font-size: 24px; background: transparent"
+        <a
+          data-testid="enable-update"
+          v-if="!edit"
+          @click="toggleEdit"
+          style="font-size: 24px; background: transparent"
           ><edit-outlined
         /></a>
       </template>
@@ -47,11 +51,13 @@
           <a-form-item label="Avatar name" v-bind="edit && validateInfos.avatar">
             <a-input v-model:value="modelRef.profile.avatar" :bordered="edit" :disabled="!edit" />
           </a-form-item>
-          <a-form-item v-if="edit" :wrapper-col="{ span: 16, offset: 8 }" style="text-align: right">
+          <a-form-item v-if="edit" :wrapper-col="{ span: 24 }" style="text-align: right">
             <a-button type="default" @click.prevent="toggleEdit" style="margin-right: 10px"
               >Cancel</a-button
             >
-            <a-button type="primary" @click.prevent="onSubmit">Save</a-button>
+            <a-button type="primary" @click.prevent="onSubmit" data-testid="update-button"
+              >Save</a-button
+            >
           </a-form-item>
         </a-form>
       </a-card>
@@ -83,7 +89,7 @@ const id = String(route.params.userId)
 const user = ref<{ value: User } | null>(null)
 
 const loading = ref<Boolean>(true)
-const edit = ref<Boolean>(false)
+const edit = ref<Boolean>(route.query?.edit)
 const submitting = ref<Boolean>(false)
 
 const modelRef = ref(user)
@@ -172,10 +178,6 @@ const onFetchUserById = async () => {
     })
 }
 onFetchUserById()
-
-onMounted(() => {
-  if (route.query?.edit) edit.value = Boolean(route.query.edit)
-})
 </script>
 
 <style>
@@ -184,6 +186,10 @@ onMounted(() => {
 }
 
 .user-card {
+  width: 100%;
+}
+
+.user {
   width: 100%;
 }
 

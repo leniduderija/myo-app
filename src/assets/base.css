@@ -95,10 +95,15 @@ body {
   overflow: scroll;
 }
 
+.ant-layout-content {
+  overflow: scroll;
+}
+
 .container {
   max-width: 100%;
   width: 1180px;
   margin: 0 auto;
+  padding: 10px;
 }
 
 .footer {
