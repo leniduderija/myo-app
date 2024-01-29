@@ -10,7 +10,8 @@ export default mergeConfig(
       // environment: 'jsdom',
       environment: 'happy-dom',
       exclude: [...configDefaults.exclude, 'e2e/*'],
-      root: fileURLToPath(new URL('./', import.meta.url))
+      root: fileURLToPath(new URL('./', import.meta.url)),
+      setupFiles: './src/common/tests/setup-tests.ts'
     }
   })
 )
