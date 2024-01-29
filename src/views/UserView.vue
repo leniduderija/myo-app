@@ -30,27 +30,42 @@
           :wrapper-col="wrapperCol"
           :disabled="submitting || !edit"
         >
-          <a-form-item label="Username" v-bind="edit && validateInfos.username">
-            <a-input
-              v-model:value="modelRef.username"
-              :bordered="edit"
-              :disabled="!edit"
-              style="color: #000"
-            />
-          </a-form-item>
-          <a-form-item label="First name" v-bind="edit && validateInfos.firstName">
-            <a-input
-              v-model:value="modelRef.profile.firstName"
-              :bordered="edit"
-              :disabled="!edit"
-            />
-          </a-form-item>
-          <a-form-item label="Last name" v-bind="edit && validateInfos.lastName">
-            <a-input v-model:value="modelRef.profile.lastName" :bordered="edit" :disabled="!edit" />
-          </a-form-item>
-          <a-form-item label="Avatar name" v-bind="edit && validateInfos.avatar">
-            <a-input v-model:value="modelRef.profile.avatar" :bordered="edit" :disabled="!edit" />
-          </a-form-item>
+          <FormInput
+            name="username"
+            :disabled="!edit"
+            label="Username"
+            placeholder="Enter username"
+            type="text"
+            v-model="modelRef.username"
+            :validateInfo="edit && validateInfos.username"
+          />
+          <FormInput
+            name="profile.firstName"
+            :disabled="!edit"
+            label="First Name"
+            placeholder="Enter first name"
+            type="text"
+            v-model="modelRef.profile.firstName"
+            :validateInfo="edit && validateInfos.firstName"
+          />
+          <FormInput
+            name="profile.lastName"
+            :disabled="!edit"
+            label="Last Name"
+            placeholder="Enter last name"
+            type="text"
+            v-model="modelRef.profile.lastName"
+            :validateInfo="edit && validateInfos.lastName"
+          />
+          <FormInput
+            name="profile.avatar"
+            :disabled="!edit"
+            label="Avatar"
+            placeholder="Enter avatar URL"
+            type="text"
+            v-model="modelRef.profile.avatar"
+            :validateInfo="edit && validateInfos.avatar"
+          />
           <a-form-item v-if="edit" :wrapper-col="{ span: 24 }" style="text-align: right">
             <a-button type="default" @click.prevent="toggleEdit" style="margin-right: 10px"
               >Cancel</a-button
@@ -66,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import type { AxiosResponse } from 'axios'
 import type { NotificationInstance } from 'ant-design-vue/es/notification'
@@ -75,8 +90,9 @@ import { EditOutlined } from '@ant-design/icons-vue'
 import type { User } from '@/shared/type-defs'
 import usersService from '@/common/services/users-service'
 import { capitalize } from '@/common/utils'
-
 import { Form } from 'ant-design-vue'
+import CustomForm from '@/components/form/CustomForm.vue'
+import FormInput from '@/components/form/FormInput.vue'
 
 const useForm = Form.useForm
 
@@ -129,6 +145,13 @@ const openNotificationWithIcon = (type: keyof NotificationInstance) => {
     message: capitalize(type),
     description: notificationMessage.value
   })
+}
+
+const onInput = (e: { target: { value: string; name: string } }) => {
+  modelRef.value = {
+    ...modelRef.value,
+    [e.target.name]: e.target.value
+  }
 }
 
 const toggleEdit = () => {

@@ -16,18 +16,38 @@
           :wrapper-col="wrapperCol"
           :disabled="submitting"
         >
-          <a-form-item label="Username" v-bind="validateInfos.username">
-            <a-input v-model:value="modelRef.username" />
-          </a-form-item>
-          <a-form-item label="First name" v-bind="validateInfos.firstName">
-            <a-input v-model:value="modelRef.profile.firstName" />
-          </a-form-item>
-          <a-form-item label="Last name" v-bind="validateInfos.lastName">
-            <a-input v-model:value="modelRef.profile.lastName" />
-          </a-form-item>
-          <a-form-item label="Avatar name" v-bind="validateInfos.avatar">
-            <a-input v-model:value="modelRef.profile.avatar" />
-          </a-form-item>
+          <FormInput
+            name="username"
+            label="Username"
+            placeholder="Enter username"
+            type="text"
+            v-model="modelRef.username"
+            :validateInfo="validateInfos.username"
+          />
+          <FormInput
+            name="profile.firstName"
+            label="First Name"
+            placeholder="Enter first name"
+            type="text"
+            v-model="modelRef.profile.firstName"
+            :validateInfo="validateInfos.firstName"
+          />
+          <FormInput
+            name="profile.lastName"
+            label="Last Name"
+            placeholder="Enter last name"
+            type="text"
+            v-model="modelRef.profile.lastName"
+            :validateInfo="validateInfos.lastName"
+          />
+          <FormInput
+            name="profile.avatar"
+            label="Avatar"
+            placeholder="Enter avatar URL"
+            type="text"
+            v-model="modelRef.profile.avatar"
+            :validateInfo="validateInfos.avatar"
+          />
           <a-form-item :wrapper-col="{ span: 24 }" style="text-align: right">
             <a-button type="primary" @click.prevent="onSubmit">Save</a-button>
           </a-form-item>
@@ -47,6 +67,7 @@ import { capitalize } from '@/common/utils'
 
 import { Form } from 'ant-design-vue'
 import router from '@/router'
+import FormInput from '@/components/form/FormInput.vue'
 
 const useForm = Form.useForm
 
