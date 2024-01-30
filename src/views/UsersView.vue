@@ -6,7 +6,6 @@
     class="users-table"
     bordered
     size="large"
-    style="width: 100%; margin: 20px 0"
     :dataSource="users"
     :columns="columns"
     :loading="!users"
@@ -126,6 +125,8 @@ onMounted(() => {
 <style>
 .users-table {
   overflow-x: scroll;
+  width: 100%;
+  margin: 20px 0;
 }
 @media (min-width: 1024px) {
   .users {

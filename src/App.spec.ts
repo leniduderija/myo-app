@@ -3,7 +3,6 @@ import { mount } from '@vue/test-utils'
 import { RouteNames } from '@/router'
 import App from '@/App.vue'
 import UsersView from '@/views/UsersView.vue'
-import { mockRouter } from '@/common/tests/setup-tests'
 
 describe('App main layout', async () => {
   test(`navigates to ${RouteNames.USERS} route`, async () => {

@@ -1,3 +1,5 @@
+import { NotificationInstance } from 'ant-design-vue/es/notification'
+
 export interface Profile {
   avatar: string
   firstName: string
@@ -9,4 +11,9 @@ export interface User {
   username: string
   profile: Profile
   createdAt: Date
+}
+
+export type RejectNotification = {
+  type: keyof NotificationInstance
+  message: string
 }
