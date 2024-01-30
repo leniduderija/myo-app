@@ -16,72 +16,30 @@
       <template #extra>
         <a
           data-testid="enable-update"
-          v-if="!edit"
-          @click="toggleEdit"
+          v-if="!editing"
+          @click="toggleEditing"
           style="font-size: 24px; background: transparent"
           ><edit-outlined
         /></a>
       </template>
 
       <a-card title="Profile" class="profile">
-        <a-form
-          name="user-edit-form"
-          :label-col="labelCol"
-          :wrapper-col="wrapperCol"
-          :disabled="submitting || !edit"
-        >
-          <FormInput
-            name="username"
-            :disabled="!edit"
-            label="Username"
-            placeholder="Enter username"
-            type="text"
-            v-model="modelRef.username"
-            :validateInfo="edit && validateInfos.username"
-          />
-          <FormInput
-            name="profile.firstName"
-            :disabled="!edit"
-            label="First Name"
-            placeholder="Enter first name"
-            type="text"
-            v-model="modelRef.profile.firstName"
-            :validateInfo="edit && validateInfos.firstName"
-          />
-          <FormInput
-            name="profile.lastName"
-            :disabled="!edit"
-            label="Last Name"
-            placeholder="Enter last name"
-            type="text"
-            v-model="modelRef.profile.lastName"
-            :validateInfo="edit && validateInfos.lastName"
-          />
-          <FormInput
-            name="profile.avatar"
-            :disabled="!edit"
-            label="Avatar"
-            placeholder="Enter avatar URL"
-            type="text"
-            v-model="modelRef.profile.avatar"
-            :validateInfo="edit && validateInfos.avatar"
-          />
-          <a-form-item v-if="edit" :wrapper-col="{ span: 24 }" style="text-align: right">
-            <a-button type="default" @click.prevent="toggleEdit" style="margin-right: 10px"
-              >Cancel</a-button
-            >
-            <a-button type="primary" @click.prevent="onSubmit" data-testid="update-button"
-              >Save</a-button
-            >
-          </a-form-item>
-        </a-form>
+        <UserForm
+          :form-values="modelRef"
+          :submitting="submitting"
+          :form-type="'edit'"
+          :editing="editing"
+          :on-submit="onSubmit"
+          :on-reject="onReject"
+          :on-cancel="toggleEditing"
+        />
       </a-card>
     </a-card>
   </a-flex>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import type { AxiosResponse } from 'axios'
 import type { NotificationInstance } from 'ant-design-vue/es/notification'
@@ -90,14 +48,8 @@ import { EditOutlined } from '@ant-design/icons-vue'
 import type { User } from '@/shared/type-defs'
 import usersService from '@/common/services/users-service'
 import { capitalize } from '@/common/utils'
-import { Form } from 'ant-design-vue'
-import CustomForm from '@/components/form/CustomForm.vue'
-import FormInput from '@/components/form/FormInput.vue'
-
-const useForm = Form.useForm
-
-const labelCol = { span: 4 }
-const wrapperCol = { span: 14 }
+import UserForm from '@/components/form/UserForm.vue'
+import { RejectNotification } from '@/shared/type-defs'
 
 const route = useRoute()
 const id = String(route.params.userId)
@@ -105,39 +57,10 @@ const id = String(route.params.userId)
 const user = ref<{ value: User } | null>(null)
 
 const loading = ref<Boolean>(true)
-const edit = ref<Boolean>(route.query?.edit)
+const editing = ref<Boolean>(route.query?.edit)
 const submitting = ref<Boolean>(false)
 
 const modelRef = ref(user)
-const rulesRef = reactive({
-  username: [
-    {
-      required: true,
-      message: 'Please input username'
-    }
-  ],
-  firstName: [
-    {
-      required: true,
-      message: 'Please input first name'
-    }
-  ],
-  lastName: [
-    {
-      required: true,
-      message: 'Please input last name'
-    }
-  ],
-  avatar: [
-    {
-      required: true,
-      message: 'Please input avatar URL'
-    }
-  ]
-})
-const { validate, validateInfos } = useForm(modelRef, rulesRef, {
-  onValidate: (...args) => console.log(...args)
-})
 
 const notificationMessage = ref<string>('')
 const openNotificationWithIcon = (type: keyof NotificationInstance) => {
@@ -147,34 +70,24 @@ const openNotificationWithIcon = (type: keyof NotificationInstance) => {
   })
 }
 
-const onInput = (e: { target: { value: string; name: string } }) => {
-  modelRef.value = {
-    ...modelRef.value,
-    [e.target.name]: e.target.value
-  }
+const toggleEditing = () => {
+  editing.value = !editing.value
 }
 
-const toggleEdit = () => {
-  edit.value = !edit.value
+const onSubmit = (values: User) => {
+  saveUser(values)
 }
 
-const onSubmit = () => {
-  submitting.value = true
-  validate()
-    .then(() => saveUser())
-    .catch((err) => {
-      notificationMessage.value = 'Failed to edit user'
-      openNotificationWithIcon('error')
-      submitting.value = false
-      console.error('Error: ', err)
-    })
+const onReject = (notification: RejectNotification) => {
+  notificationMessage.value = notification.message
+  openNotificationWithIcon(notification.type)
 }
 
-const saveUser = () => {
+const saveUser = (values: User) => {
   usersService
-    .updateUser(modelRef.value!)
+    .updateUser(values)
     .then(() => {
-      edit.value = !edit.value
+      editing.value = !editing.value
       submitting.value = false
       notificationMessage.value = 'Successfully edited user'
       openNotificationWithIcon('success')
